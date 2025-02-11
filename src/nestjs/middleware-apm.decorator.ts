@@ -1,5 +1,11 @@
 import { SetMetadata } from "@nestjs/common";
-import { trace, context, Attributes, SpanStatusCode, Exception } from "@opentelemetry/api";
+import {
+  trace,
+  context,
+  Attributes,
+  SpanStatusCode,
+  Exception,
+} from "@opentelemetry/api";
 import { MetricAttributes } from "@opentelemetry/api-metrics";
 import { getMeter } from "../init";
 
@@ -29,45 +35,6 @@ export function WithAttributes(attributes: Attributes) {
         });
       }
       return originalMethod.apply(this, args);
-    };
-
-    return descriptor;
-  };
-}
-
-/**
- * Measures and records method execution time as a histogram metric
- * @param metricName Name of the metric to record
- * @param attributes Optional attributes to add to the metric
- */
-export function MeasureExecutionTime(
-  metricName: string,
-  attributes: MetricAttributes = {}
-) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
-    const originalMethod = descriptor.value;
-    const meter = getMeter("nestjs-apm");
-    const histogram = meter.createHistogram(metricName, {
-      description: "Method execution time",
-      unit: "ms",
-    });
-
-    descriptor.value = async function (...args: any[]) {
-      const startTime = performance.now();
-      try {
-        const result = await originalMethod.apply(this, args);
-        const duration = performance.now() - startTime;
-        histogram.record(duration, attributes);
-        return result;
-      } catch (error) {
-        const duration = performance.now() - startTime;
-        histogram.record(duration, { ...attributes, error: "true" });
-        throw error;
-      }
     };
 
     return descriptor;
@@ -119,42 +86,6 @@ export function CreateSpan(operationName: string, attributes: Attributes = {}) {
           span.end();
         }
       });
-    };
-
-    return descriptor;
-  };
-}
-
-/**
- * Tracks business metrics using counters
- * @param metricName Name of the counter metric
- * @param attributes Optional attributes for the metric
- */
-export function TrackMetric(
-  metricName: string,
-  attributes: MetricAttributes = {}
-) {
-  return function (
-    target: any,
-    propertyKey: string,
-    descriptor: PropertyDescriptor
-  ) {
-    const originalMethod = descriptor.value;
-    const meter = getMeter("nestjs-apm");
-    const counter = meter.createCounter(metricName, {
-      description: "Business metric counter",
-      unit: "1",
-    });
-
-    descriptor.value = async function (...args: any[]) {
-      try {
-        const result = await originalMethod.apply(this, args);
-        counter.add(1, attributes);
-        return result;
-      } catch (error) {
-        counter.add(1, { ...attributes, error: "true" });
-        throw error;
-      }
     };
 
     return descriptor;

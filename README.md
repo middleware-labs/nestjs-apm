@@ -15,7 +15,7 @@ npm install @middleware.io/nestjs-apm
 1. Import the MiddlewareApmModule in your app.module.ts:
 
 ```typescript
-import { MiddlewareApmModule } from '@middleware.io/nestjs-apm';
+import { MiddlewareApmModule } from "@middleware.io/nestjs-apm";
 
 @Module({
   imports: [
@@ -32,7 +32,7 @@ export class AppModule {}
 2. Add the interceptor to your main.ts:
 
 ```typescript
-import { MiddlewareApmInterceptor } from '@middleware.io/nestjs-apm';
+import { MiddlewareApmInterceptor } from "@middleware.io/nestjs-apm";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -59,14 +59,14 @@ bootstrap();
 You can use the `@IgnoreApmTrace()` decorator to exclude specific routes from tracing:
 
 ```typescript
-import { IgnoreApmTrace } from '@middleware.io/nestjs-apm';
+import { IgnoreApmTrace } from "@middleware.io/nestjs-apm";
 
-@Controller('users')
+@Controller("users")
 export class UsersController {
   @IgnoreApmTrace()
-  @Get('health')
+  @Get("health")
   healthCheck() {
-    return 'OK';
+    return "OK";
   }
 }
 ```
@@ -78,29 +78,13 @@ export class UsersController {
 Add custom attributes to spans:
 
 ```typescript
-import { WithAttributes } from '@middleware.io/nestjs-apm';
+import { WithAttributes } from "@middleware.io/nestjs-apm";
 
-@Controller('orders')
+@Controller("orders")
 export class OrdersController {
-  @WithAttributes({ 'business.type': 'order', 'business.tier': 'premium' })
+  @WithAttributes({ "business.type": "order", "business.tier": "premium" })
   @Post()
   createOrder() {
-    // Your code here
-  }
-}
-```
-
-### Execution Time Measurement
-
-Measure and record method execution time:
-
-```typescript
-import { MeasureExecutionTime } from '@middleware.io/nestjs-apm';
-
-@Injectable()
-export class PaymentService {
-  @MeasureExecutionTime('payment.processing.time', { provider: 'stripe' })
-  async processPayment(orderId: string) {
     // Your code here
   }
 }
@@ -111,28 +95,12 @@ export class PaymentService {
 Create custom spans with specific names and attributes:
 
 ```typescript
-import { CreateSpan } from '@middleware.io/nestjs-apm';
+import { CreateSpan } from "@middleware.io/nestjs-apm";
 
 @Injectable()
 export class UserService {
-  @CreateSpan('user.registration', { 'user.type': 'new' })
+  @CreateSpan("user.registration", { "user.type": "new" })
   async registerUser(userData: any) {
-    // Your code here
-  }
-}
-```
-
-### Business Metrics
-
-Track business-specific metrics:
-
-```typescript
-import { TrackMetric } from '@middleware.io/nestjs-apm';
-
-@Injectable()
-export class OrderService {
-  @TrackMetric('orders.created', { channel: 'web' })
-  async createOrder(orderData: any) {
     // Your code here
   }
 }
@@ -143,12 +111,12 @@ export class OrderService {
 Automatically record method parameters as span attributes:
 
 ```typescript
-import { RecordParams } from '@middleware.io/nestjs-apm';
+import { RecordParams } from "@middleware.io/nestjs-apm";
 
-@Controller('users')
+@Controller("users")
 export class UsersController {
-  @RecordParams(['userId', 'action'])
-  @Post(':userId/action')
+  @RecordParams(["userId", "action"])
+  @Post(":userId/action")
   performAction(userId: string, action: string) {
     // Parameters will be recorded as span attributes
   }
@@ -158,13 +126,11 @@ export class UsersController {
 You can combine multiple decorators for comprehensive instrumentation:
 
 ```typescript
-@Controller('payments')
+@Controller("payments")
 export class PaymentsController {
-  @CreateSpan('payment.process')
-  @MeasureExecutionTime('payment.duration')
-  @WithAttributes({ 'payment.type': 'credit-card' })
-  @TrackMetric('payments.processed')
-  @RecordParams(['amount', 'currency'])
+  @CreateSpan("payment.process")
+  @WithAttributes({ "payment.type": "credit-card" })
+  @RecordParams(["amount", "currency"])
   async processPayment(amount: number, currency: string) {
     // Your code here
   }
