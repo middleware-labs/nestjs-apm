@@ -47,7 +47,7 @@
     "@types/logform": "^1.10.1",
     "@wdalmut/opentelemetry-plugin-mongoose": "^0.2.3",
     "axios": "^1.7.7",
-    "express": "^4.18.1",
+    "express": "^4.21.2",
     "logform": "^2.6.1",
     "node-fetch": "^2.6.0",
     "opentelemetry-node-metrics": "^3.0.0",
