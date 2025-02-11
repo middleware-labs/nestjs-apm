@@ -1,0 +1,172 @@
+# Middleware NestJS APM
+
+## Introduction
+
+@middleware.io/nestjs-apm is the official Middleware APM client for NestJS applications that automatically instruments your application with OpenTelemetry, sending runtime metrics, traces/spans, and console logs to [Middleware.io](https://middleware.io/).
+
+## Installation
+
+```bash
+npm install @middleware.io/nestjs-apm
+```
+
+## Usage
+
+1. Import the MiddlewareApmModule in your app.module.ts:
+
+```typescript
+import { MiddlewareApmModule } from '@middleware.io/nestjs-apm';
+
+@Module({
+  imports: [
+    MiddlewareApmModule.forRoot({
+      projectName: "Your application name",
+      serviceName: "Your service name",
+    }),
+    // ... other modules
+  ],
+})
+export class AppModule {}
+```
+
+2. Add the interceptor to your main.ts:
+
+```typescript
+import { MiddlewareApmInterceptor } from '@middleware.io/nestjs-apm';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.useGlobalInterceptors(new MiddlewareApmInterceptor(app.get(Reflector)));
+  await app.listen(3000);
+}
+bootstrap();
+```
+
+## Features
+
+- Automatic instrumentation of NestJS controllers and services
+- Console log capture (info, warn, error)
+- Distributed tracing
+- Performance metrics
+- Error tracking
+- Custom span attributes
+- Advanced instrumentation decorators
+
+## Basic Usage
+
+### Ignoring Routes
+
+You can use the `@IgnoreApmTrace()` decorator to exclude specific routes from tracing:
+
+```typescript
+import { IgnoreApmTrace } from '@middleware.io/nestjs-apm';
+
+@Controller('users')
+export class UsersController {
+  @IgnoreApmTrace()
+  @Get('health')
+  healthCheck() {
+    return 'OK';
+  }
+}
+```
+
+## Advanced Instrumentation
+
+### Custom Attributes
+
+Add custom attributes to spans:
+
+```typescript
+import { WithAttributes } from '@middleware.io/nestjs-apm';
+
+@Controller('orders')
+export class OrdersController {
+  @WithAttributes({ 'business.type': 'order', 'business.tier': 'premium' })
+  @Post()
+  createOrder() {
+    // Your code here
+  }
+}
+```
+
+### Execution Time Measurement
+
+Measure and record method execution time:
+
+```typescript
+import { MeasureExecutionTime } from '@middleware.io/nestjs-apm';
+
+@Injectable()
+export class PaymentService {
+  @MeasureExecutionTime('payment.processing.time', { provider: 'stripe' })
+  async processPayment(orderId: string) {
+    // Your code here
+  }
+}
+```
+
+### Custom Spans
+
+Create custom spans with specific names and attributes:
+
+```typescript
+import { CreateSpan } from '@middleware.io/nestjs-apm';
+
+@Injectable()
+export class UserService {
+  @CreateSpan('user.registration', { 'user.type': 'new' })
+  async registerUser(userData: any) {
+    // Your code here
+  }
+}
+```
+
+### Business Metrics
+
+Track business-specific metrics:
+
+```typescript
+import { TrackMetric } from '@middleware.io/nestjs-apm';
+
+@Injectable()
+export class OrderService {
+  @TrackMetric('orders.created', { channel: 'web' })
+  async createOrder(orderData: any) {
+    // Your code here
+  }
+}
+```
+
+### Parameter Recording
+
+Automatically record method parameters as span attributes:
+
+```typescript
+import { RecordParams } from '@middleware.io/nestjs-apm';
+
+@Controller('users')
+export class UsersController {
+  @RecordParams(['userId', 'action'])
+  @Post(':userId/action')
+  performAction(userId: string, action: string) {
+    // Parameters will be recorded as span attributes
+  }
+}
+```
+
+You can combine multiple decorators for comprehensive instrumentation:
+
+```typescript
+@Controller('payments')
+export class PaymentsController {
+  @CreateSpan('payment.process')
+  @MeasureExecutionTime('payment.duration')
+  @WithAttributes({ 'payment.type': 'credit-card' })
+  @TrackMetric('payments.processed')
+  @RecordParams(['amount', 'currency'])
+  async processPayment(amount: number, currency: string) {
+    // Your code here
+  }
+}
+```
