@@ -51,6 +51,8 @@ bootstrap();
 - Error tracking
 - Custom span attributes
 - Advanced instrumentation decorators
+- OpenTelemetry log integration
+- Exception tracking with OTEL events
 
 ## Basic Usage
 
@@ -119,6 +121,29 @@ export class UsersController {
   @Post(":userId/action")
   performAction(userId: string, action: string) {
     // Parameters will be recorded as span attributes
+  }
+}
+```
+
+### Logging Integration
+
+The module automatically records all NestJS logger output to OpenTelemetry. Just use the standard NestJS logger:
+
+```typescript
+import { Logger, Injectable } from "@nestjs/common";
+
+@Injectable()
+export class UserService {
+  private readonly logger = new Logger(UserService.name);
+
+  async createUser(userData: any) {
+    try {
+      this.logger.log("Creating new user", { userId: userData.id });
+      // ... user creation logic
+    } catch (error) {
+      this.logger.error("Failed to create user", error);
+      throw error;
+    }
   }
 }
 ```
