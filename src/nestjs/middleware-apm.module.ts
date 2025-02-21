@@ -34,13 +34,13 @@ export class MiddlewareApmModule implements OnApplicationShutdown {
     const originalLoggerVerbose = Logger.prototype.verbose;
 
     Logger.prototype.log = function (message: any, ...optionalParams: any[]) {
-      const context = this.context || optionalParams[optionalParams.length - 1];
+      const context = extractContext(optionalParams);
       log("INFO", message, { context });
       return originalLoggerLog.apply(this, [message, ...optionalParams]);
     };
 
     Logger.prototype.error = function (message: any, ...optionalParams: any[]) {
-      const context = this.context || optionalParams[optionalParams.length - 1];
+      const context = extractContext(optionalParams);
 
       // Handle error objects
       if (message instanceof Error) {
@@ -65,13 +65,13 @@ export class MiddlewareApmModule implements OnApplicationShutdown {
     };
 
     Logger.prototype.warn = function (message: any, ...optionalParams: any[]) {
-      const context = this.context || optionalParams[optionalParams.length - 1];
+      const context = extractContext(optionalParams);
       log("WARN", message, { context });
       return originalLoggerWarn.apply(this, [message, ...optionalParams]);
     };
 
     Logger.prototype.debug = function (message: any, ...optionalParams: any[]) {
-      const context = this.context || optionalParams[optionalParams.length - 1];
+      const context = extractContext(optionalParams);
       log("DEBUG", message, { context });
       return originalLoggerDebug.apply(this, [message, ...optionalParams]);
     };
@@ -80,7 +80,7 @@ export class MiddlewareApmModule implements OnApplicationShutdown {
       message: any,
       ...optionalParams: any[]
     ) {
-      const context = this.context || optionalParams[optionalParams.length - 1];
+      const context = extractContext(optionalParams);
       log("DEBUG", message, { context });
       return originalLoggerVerbose.apply(this, [message, ...optionalParams]);
     };
@@ -90,6 +90,30 @@ export class MiddlewareApmModule implements OnApplicationShutdown {
     // Ensure clean shutdown of OpenTelemetry SDK
     await sdkShutdown();
   }
+}
+
+function extractContext(optionalParams: any[]): string | undefined {
+  if (optionalParams.length === 0) return undefined;
+
+  // Context is typically the last parameter and can be either a string or an object with a name property
+  const lastParam = optionalParams[optionalParams.length - 1];
+
+  if (typeof lastParam === "string") {
+    return lastParam;
+  }
+
+  if (typeof lastParam === "object" && lastParam !== null) {
+    // If it's a class instance, try to get the name
+    if (lastParam.constructor && lastParam.constructor.name) {
+      return lastParam.constructor.name;
+    }
+    // If it has a name property
+    if (lastParam.name) {
+      return lastParam.name;
+    }
+  }
+
+  return undefined;
 }
 
 function extractErrorMetadata(error: Error): Record<string, any> {
