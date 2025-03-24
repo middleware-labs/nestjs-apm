@@ -32,6 +32,7 @@ export class AppModule {}
 2. Add the interceptor to your main.ts:
 
 ```typescript
+// For version below the 11.0.0
 import { MiddlewareApmInterceptor } from "@middleware.io/nestjs-apm";
 
 async function bootstrap() {
