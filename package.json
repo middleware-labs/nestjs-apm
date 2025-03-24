@@ -20,8 +20,8 @@
   "license": "ISC",
   "dependencies": {
     "@grpc/grpc-js": "^1.6.7",
-    "@nestjs/common": "^8.0.0 || ^9.0.0 || ^10.0.0",
-    "@nestjs/core": "^8.0.0 || ^9.0.0 || ^10.0.0",
+    "@nestjs/common": "^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0",
+    "@nestjs/core": "^8.0.0 || ^9.0.0 || ^10.0.0 || ^11.0.0",
     "@opentelemetry/api": "^1.9.0",
     "@opentelemetry/api-logs": "^0.53.0",
     "@opentelemetry/api-metrics": "^0.33.0",
@@ -53,14 +53,21 @@
     "opentelemetry-node-metrics": "^3.0.0",
     "process": "^0.11.10",
     "reflect-metadata": "^0.2.0",
-    "rxjs": "^7.8.0"
+    "rxjs": "^6.6.0 || ^7.0.0"
   },
   "optionalDependencies": {
     "@pyroscope/nodejs": "0.3.6"
   },
-  "peerDependencies": {
-    "@nestjs/common": "^8.0.0 || ^9.0.0 || ^10.0.0",
-    "@nestjs/core": "^8.0.0 || ^9.0.0 || ^10.0.0"
+  "peerDependenciesMeta": {
+    "@nestjs/common": {
+      "optional": false
+    },
+    "@nestjs/core": {
+      "optional": false
+    },
+    "rxjs": {
+      "optional": false
+    }
   },
   "repository": {
     "type": "git",
@@ -76,7 +83,7 @@
   ],
   "homepage": "https://github.com/middleware-labs/nestjs-apm#readme",
   "devDependencies": {
-    "@nestjs/testing": "^10.0.0",
+    "@nestjs/testing": "^10.0.0 || ^11.0.0",
     "@types/jest": "^29.5.13",
     "@types/mongodb": "^4.0.7",
     "@types/node": "^20.14.2",

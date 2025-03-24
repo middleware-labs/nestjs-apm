@@ -7,8 +7,7 @@ import {
 } from "@nestjs/common";
 import { Config } from "../config";
 import { track, sdkShutdown } from "../init";
-import { APP_INTERCEPTOR, Reflector } from "@nestjs/core";
-import { MiddlewareApmInterceptor } from "./middleware-apm.interceptor";
+import { Reflector } from "@nestjs/core";
 import { middlewareLogger } from "./middleware-apm.logger";
 
 @Global()
@@ -18,10 +17,6 @@ export class MiddlewareApmModule implements OnApplicationShutdown {
     track(config);
 
     const providers: Provider[] = [
-      {
-        provide: APP_INTERCEPTOR,
-        useClass: MiddlewareApmInterceptor,
-      },
       Reflector,
       {
         provide: "MIDDLEWARE_APM_LOGGER",
