@@ -12,7 +12,7 @@ npm install @middleware.io/nestjs-apm
 
 ## Usage
 
-1. Import the MiddlewareApmModule in your app.module.ts:
+Import the MiddlewareApmModule in your app.module.ts:
 
 ```typescript
 import { MiddlewareApmModule } from "@middleware.io/nestjs-apm";
@@ -27,20 +27,6 @@ import { MiddlewareApmModule } from "@middleware.io/nestjs-apm";
   ],
 })
 export class AppModule {}
-```
-
-2. Add the interceptor to your main.ts:
-
-```typescript
-// For version below the 11.0.0
-import { MiddlewareApmInterceptor } from "@middleware.io/nestjs-apm";
-
-async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
-  app.useGlobalInterceptors(new MiddlewareApmInterceptor(app.get(Reflector)));
-  await app.listen(3000);
-}
-bootstrap();
 ```
 
 ## Features
