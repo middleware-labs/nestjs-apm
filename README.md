@@ -45,20 +45,68 @@ export class AppModule {}
 
 ### Ignoring Routes
 
-You can use the `@IgnoreApmTrace()` decorator to exclude specific routes from tracing:
+You can use the `@IgnoreApmTrace()` decorator to exclude specific routes from OpenTelemetry tracing and prevent them from being exported:
 
 ```typescript
 import { IgnoreApmTrace } from "@middleware.io/nestjs-apm";
 
 @Controller("users")
 export class UsersController {
+  // This endpoint will not create or export any OpenTelemetry traces
   @IgnoreApmTrace()
   @Get("health")
   healthCheck() {
     return "OK";
   }
+
+  // This endpoint will still be traced normally
+  @Get(":id")
+  getUser(@Param("id") id: string) {
+    return { id, name: "John Doe" };
+  }
 }
 ```
+
+The `@IgnoreApmTrace()` decorator can be applied to individual methods or entire controllers:
+
+```typescript
+// Ignore tracing for the entire controller
+@IgnoreApmTrace()
+@Controller("internal")
+export class InternalController {
+  @Get("status")
+  getStatus() {
+    return "Internal status";
+  }
+
+  @Get("metrics")
+  getMetrics() {
+    return "Internal metrics";
+  }
+}
+```
+
+#### Alternative: Manual Route Registration
+
+You can also manually register routes to be ignored using the `registerIgnoredRoutes` function:
+
+```typescript
+import { registerIgnoredRoutes } from "@middleware.io/nestjs-apm";
+
+// In your application initialization
+registerIgnoredRoutes([
+  '/health',
+  '/metrics', 
+  '/status',
+  '/users/:id/health', // Routes with parameters
+  '/internal/*'        // Wildcard patterns
+]);
+```
+
+This approach is useful when you want to:
+- Configure ignored routes in one central location
+- Ignore routes that don't use decorators
+- Set up ignored routes during application bootstrap
 
 ## Advanced Instrumentation
 
