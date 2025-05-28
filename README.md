@@ -108,6 +108,31 @@ This approach is useful when you want to:
 - Ignore routes that don't use decorators
 - Set up ignored routes during application bootstrap
 
+#### ⚠️ Performance Recommendation
+
+**For production applications, we recommend using `registerIgnoredRoutes()` instead of `@IgnoreApmTrace()` for better performance.**
+
+**Why `registerIgnoredRoutes()` is more efficient:**
+- **Prevents span creation entirely** at the HTTP instrumentation level
+- **Lower CPU overhead** - no reflection or span manipulation needed
+- **Better for high-traffic routes** like health checks and metrics endpoints
+- **Earlier filtering** - operates before NestJS request processing
+
+**When to use `@IgnoreApmTrace()`:**
+- For fine-grained, method-level control
+- When ignored routes are not high-traffic
+- For development or low-traffic scenarios
+
+```typescript
+// ✅ Recommended for production (better performance)
+registerIgnoredRoutes(['/health', '/metrics', '/status']);
+
+// ⚠️ Use sparingly for high-traffic routes
+@IgnoreApmTrace()
+@Get('health')
+healthCheck() { ... }
+```
+
 ## Advanced Instrumentation
 
 ### Custom Attributes
@@ -196,3 +221,66 @@ export class PaymentsController {
   }
 }
 ```
+
+## Configuration
+
+The MiddlewareApmModule accepts various configuration options to customize the APM behavior:
+
+```typescript
+@Module({
+  imports: [
+    MiddlewareApmModule.forRoot({
+      projectName: "Your application name",
+      serviceName: "Your service name",
+      
+      // Optional configuration options
+      enableFsInstrumentation: false,  // Enable filesystem instrumentation (disabled by default for performance)
+      consoleLog: false,               // Capture console.log outputs
+      consoleError: true,              // Capture console.error outputs
+      enableSelfInstrumentation: false, // Enable self-instrumentation
+      consoleExporter: false,          // Export to console instead of OTLP
+      disabledInstrumentations: "",    // Comma-separated list of instrumentations to disable
+      customResourceAttributes: {},    // Custom resource attributes
+      // ... other options
+    }),
+  ],
+})
+export class AppModule {}
+```
+
+### Environment Variables
+
+You can also configure the module using environment variables:
+
+| Environment Variable | Config Option | Description | Default |
+|---------------------|---------------|-------------|---------|
+| `MW_FS_INSTRUMENTATION` | `enableFsInstrumentation` | Enable filesystem instrumentation | `false` |
+| `MW_SELF_INSTRUMENTATION` | `enableSelfInstrumentation` | Enable self-instrumentation | `false` |
+| `MW_CONSOLE_EXPORTER` | `consoleExporter` | Export to console instead of OTLP | `false` |
+| `MW_APM_TRACES_ENABLED` | `pauseTraces` | Enable/disable trace collection | `true` |
+| `MW_APM_METRICS_ENABLED` | `pauseMetrics` | Enable/disable metrics collection | `true` |
+| `MW_API_KEY` | `accessToken` | Middleware API key | - |
+| `MW_SERVICE_NAME` | `serviceName` | Service name | - |
+| `MW_PROJECT_NAME` | `projectName` | Project name | - |
+| `MW_TARGET` | `target` | OTLP endpoint URL | `http://localhost:9319` |
+
+### Filesystem Instrumentation
+
+⚠️ **Performance Warning**: Filesystem instrumentation is disabled by default as it can have a severe impact on application performance, especially in I/O-intensive applications.
+
+To enable filesystem instrumentation:
+
+**Via configuration object:**
+```typescript
+MiddlewareApmModule.forRoot({
+  // ... other config
+  enableFsInstrumentation: true
+})
+```
+
+**Via environment variable:**
+```bash
+export MW_FS_INSTRUMENTATION=true
+```
+
+Only enable this if you specifically need to trace filesystem operations and are aware of the potential performance implications.

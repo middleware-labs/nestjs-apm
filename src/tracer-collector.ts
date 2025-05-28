@@ -57,8 +57,9 @@ export const init = (config: Config) => {
 function createInstrumentationConfig(config: Config): InstrumentationConfigMap {
   const instrumentationConfig: InstrumentationConfigMap = {};
   // DISABLING IT AS IT HAS SEVERE IMPACT ON PERFORMANCE
+  // Can be enabled via enableFsInstrumentation config option
   instrumentationConfig["@opentelemetry/instrumentation-fs"] = {
-    enabled: false,
+    enabled: config.enableFsInstrumentation,
   };
   const instrumentations: { [key: string]: keyof InstrumentationConfigMap } = {
     dns: "@opentelemetry/instrumentation-dns",
