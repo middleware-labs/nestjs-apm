@@ -16,6 +16,7 @@ import {
   ConsoleSpanExporter,
   SpanExporter,
 } from "@opentelemetry/sdk-trace-node";
+import { ApmRouteRegistry } from "./nestjs/middleware-apm.route-registry";
 
 let sdk: NodeSDK | null = null;
 
@@ -56,8 +57,9 @@ export const init = (config: Config) => {
 function createInstrumentationConfig(config: Config): InstrumentationConfigMap {
   const instrumentationConfig: InstrumentationConfigMap = {};
   // DISABLING IT AS IT HAS SEVERE IMPACT ON PERFORMANCE
+  // Can be enabled via enableFsInstrumentation config option
   instrumentationConfig["@opentelemetry/instrumentation-fs"] = {
-    enabled: false,
+    enabled: config.enableFsInstrumentation,
   };
   const instrumentations: { [key: string]: keyof InstrumentationConfigMap } = {
     dns: "@opentelemetry/instrumentation-dns",
@@ -71,15 +73,30 @@ function createInstrumentationConfig(config: Config): InstrumentationConfigMap {
     }
   });
 
+  // Configure HTTP instrumentation with ignore hooks
+  const httpConfig: any = {
+    ignoreOutgoingRequestHook: (request: any): boolean => {
+      if (request?.path) {
+        return request.path.includes("/profiling/ingest");
+      }
+      return false;
+    },
+    ignoreIncomingRequestHook: (request: any): boolean => {
+      // Check if the route should be ignored based on the registry
+      if (request?.url) {
+        return ApmRouteRegistry.shouldIgnoreRoute(request.url);
+      }
+      return false;
+    },
+  };
+
   // By Default Ignoring Pyroscope Instrumented spans
   if (!config.enableSelfInstrumentation) {
+    instrumentationConfig["@opentelemetry/instrumentation-http"] = httpConfig;
+  } else {
+    // If self instrumentation is enabled, only add the incoming request hook
     instrumentationConfig["@opentelemetry/instrumentation-http"] = {
-      ignoreOutgoingRequestHook: (request): boolean => {
-        if (request?.path) {
-          return request.path.includes("/profiling/ingest");
-        }
-        return false;
-      },
+      ignoreIncomingRequestHook: httpConfig.ignoreIncomingRequestHook,
     };
   }
 

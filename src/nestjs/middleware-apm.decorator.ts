@@ -8,10 +8,45 @@ import {
 } from "@opentelemetry/api";
 import { MetricAttributes } from "@opentelemetry/api-metrics";
 import { getMeter } from "../init";
+import { ApmRouteRegistry } from "./middleware-apm.route-registry";
 
 export const MIDDLEWARE_APM_IGNORE = "middleware_apm_ignore";
 
-export const IgnoreApmTrace = () => SetMetadata(MIDDLEWARE_APM_IGNORE, true);
+/**
+ * Decorator to ignore OpenTelemetry tracing for a specific endpoint or controller method.
+ * When applied, this decorator prevents the creation and export of OTEL traces for the decorated method.
+ * Works in conjunction with the MiddlewareApmInterceptor to suppress tracing.
+ */
+export function IgnoreApmTrace() {
+  return function (target: any, propertyKey?: string, descriptor?: PropertyDescriptor) {
+    // Set metadata for the interceptor
+    if (propertyKey && descriptor) {
+      // Method decorator - try to extract route info
+      SetMetadata(MIDDLEWARE_APM_IGNORE, true)(target, propertyKey, descriptor);
+      
+      // Try to get route information from the target
+      const controllerPath = Reflect.getMetadata('path', target.constructor) || '';
+      const methodPath = Reflect.getMetadata('path', descriptor.value) || '';
+      
+      if (controllerPath || methodPath) {
+        const fullPath = `${controllerPath}${methodPath}`.replace(/\/+/g, '/');
+        if (fullPath && fullPath !== '/') {
+          ApmRouteRegistry.addIgnoredRoute(fullPath);
+        }
+      }
+    } else {
+      // Class decorator
+      SetMetadata(MIDDLEWARE_APM_IGNORE, true)(target);
+      
+      // Try to get controller path
+      const controllerPath = Reflect.getMetadata('path', target) || '';
+      if (controllerPath) {
+        // Add a wildcard pattern for all routes under this controller
+        ApmRouteRegistry.addIgnoredRoute(`${controllerPath}/*`);
+      }
+    }
+  };
+}
 
 /**
  * Adds custom attributes to the current span
