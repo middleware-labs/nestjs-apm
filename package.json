@@ -1,6 +1,6 @@
 {
   "name": "@middleware.io/nestjs-apm",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Middleware APM for NestJS applications",
   "main": "lib/src/index.js",
   "types": "lib/src/index.d.ts",
@@ -32,6 +32,7 @@
     "@opentelemetry/exporter-trace-otlp-grpc": "^0.53.0",
     "@opentelemetry/instrumentation-grpc": "^0.53.0",
     "@opentelemetry/instrumentation-mongoose": "^0.42.0",
+    "@opentelemetry/instrumentation-pino": "^0.42.0",
     "@opentelemetry/propagator-b3": "^1.26.0",
     "@opentelemetry/resource-detector-aws": "^1.6.1",
     "@opentelemetry/resource-detector-azure": "^0.2.11",
