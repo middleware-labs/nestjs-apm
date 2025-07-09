@@ -33,6 +33,7 @@ export class AppModule {}
 
 - Automatic instrumentation of NestJS controllers and services
 - Console log capture (info, warn, error)
+- Automatic Pino log collection via OpenTelemetry
 - Distributed tracing
 - Performance metrics
 - Error tracking
@@ -208,6 +209,111 @@ export class UserService {
 }
 ```
 
+### Pino Logging Integration
+
+The module automatically instruments Pino loggers using OpenTelemetry instrumentation. When you install and use Pino in your NestJS application, logs will be automatically collected and sent to Middleware.io with proper trace correlation.
+
+**Automatic Collection**: When you use Pino in your NestJS application, logs will automatically be collected:
+
+```typescript
+// First install Pino in your application
+// npm install pino
+
+import pino from 'pino';
+
+const logger = pino();
+
+@Injectable()
+export class UserService {
+  async createUser(userData: any) {
+    logger.info({ userId: userData.id }, 'Creating new user');
+    
+    try {
+      // ... user creation logic
+      logger.info({ userId: userData.id }, 'User created successfully');
+    } catch (error) {
+      logger.error({ userId: userData.id, error }, 'Failed to create user');
+      throw error;
+    }
+  }
+}
+```
+
+**Advanced Pino Usage**: The instrumentation supports all Pino features including structured logging:
+
+```typescript
+// First install Pino in your application
+// npm install pino
+
+import pino from 'pino';
+
+const logger = pino({
+  level: 'info',
+  formatters: {
+    level: (label) => {
+      return { level: label };
+    },
+  },
+});
+
+@Controller('orders')
+export class OrdersController {
+  @Post()
+  async createOrder(@Body() orderData: any) {
+    const startTime = Date.now();
+    
+    logger.info({ 
+      orderId: orderData.id, 
+      userId: orderData.userId,
+      amount: orderData.amount 
+    }, 'Processing order');
+    
+    try {
+      // Process order logic here
+      const processingTime = Date.now() - startTime;
+      
+      logger.info({ 
+        orderId: orderData.id, 
+        processingTime,
+        status: 'completed' 
+      }, 'Order processed successfully');
+      
+      return { success: true };
+    } catch (error) {
+      logger.error({ 
+        orderId: orderData.id, 
+        error: error.message,
+        stack: error.stack 
+      }, 'Order processing failed');
+      
+      throw error;
+    }
+  }
+}
+```
+
+**Important**: You need to install Pino in your application for the instrumentation to work:
+
+```bash
+npm install pino
+```
+
+**Trace Correlation**: Pino logs will automatically include trace and span IDs when they occur within traced requests, enabling you to correlate logs with specific request traces.
+
+**Configuration**: Pino instrumentation is enabled by default. To disable it:
+
+```typescript
+MiddlewareApmModule.forRoot({
+  // ... other config
+  enablePinoInstrumentation: false
+})
+```
+
+Or via environment variable:
+```bash
+export MW_PINO_INSTRUMENTATION=false
+```
+
 You can combine multiple decorators for comprehensive instrumentation:
 
 ```typescript
@@ -235,6 +341,7 @@ The MiddlewareApmModule accepts various configuration options to customize the A
       
       // Optional configuration options
       enableFsInstrumentation: false,  // Enable filesystem instrumentation (disabled by default for performance)
+      enablePinoInstrumentation: true, // Enable automatic Pino log collection (enabled by default)
       consoleLog: false,               // Capture console.log outputs
       consoleError: true,              // Capture console.error outputs
       enableSelfInstrumentation: false, // Enable self-instrumentation
@@ -263,6 +370,7 @@ You can also configure the module using environment variables:
 | `MW_SERVICE_NAME` | `serviceName` | Service name | - |
 | `MW_PROJECT_NAME` | `projectName` | Project name | - |
 | `MW_TARGET` | `target` | OTLP endpoint URL | `http://localhost:9319` |
+| `MW_PINO_INSTRUMENTATION` | `enablePinoInstrumentation` | Enable automatic Pino log collection | `true` |
 
 ### Filesystem Instrumentation
 

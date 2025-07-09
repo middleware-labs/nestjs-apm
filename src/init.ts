@@ -11,6 +11,16 @@ import {
 } from "@opentelemetry/api";
 import { performHealthCheck } from "./healthcheck";
 import { shutdown } from "./tracer-collector";
+
+/**
+ * Initialize the Middleware APM SDK with automatic instrumentation
+ * Includes automatic collection of:
+ * - NestJS traces and spans
+ * - Console logs (if enabled)
+ * - Pino logs (enabled by default)
+ * - Performance metrics
+ * - Runtime profiling (if enabled)
+ */
 export const track = (newConfig: Partial<Config> | undefined = {}): void => {
   const config = configInit(newConfig);
   profilerInit(config).then((r) => {});
