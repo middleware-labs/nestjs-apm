@@ -6,6 +6,7 @@ import {
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-grpc";
 import { CompressionAlgorithm } from "@opentelemetry/otlp-exporter-base";
 import { GrpcInstrumentation } from "@opentelemetry/instrumentation-grpc";
+import { PinoInstrumentation } from "@opentelemetry/instrumentation-pino";
 import { ATTR_SERVICE_NAME } from "@opentelemetry/semantic-conventions";
 import { CompositePropagator } from "@opentelemetry/core";
 import { B3Propagator, B3InjectEncoding } from "@opentelemetry/propagator-b3";
@@ -47,6 +48,7 @@ export const init = (config: Config) => {
         new GrpcInstrumentation({
           ignoreGrpcMethods: ["Export"],
         }),
+        ...(config.enablePinoInstrumentation ? [new PinoInstrumentation()] : []),
       ],
     });
     
@@ -64,6 +66,7 @@ function createInstrumentationConfig(config: Config): InstrumentationConfigMap {
   const instrumentations: { [key: string]: keyof InstrumentationConfigMap } = {
     dns: "@opentelemetry/instrumentation-dns",
     net: "@opentelemetry/instrumentation-net",
+    pino: "@opentelemetry/instrumentation-pino",
   };
 
   config.disabledInstrumentations.split(",").forEach((item) => {
