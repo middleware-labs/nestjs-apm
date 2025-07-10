@@ -33,7 +33,6 @@ export class AppModule {}
 
 - Automatic instrumentation of NestJS controllers and services
 - Console log capture (info, warn, error)
-- Automatic Pino log collection via OpenTelemetry
 - Distributed tracing
 - Performance metrics
 - Error tracking
@@ -209,22 +208,6 @@ export class UserService {
 }
 ```
 
-### Pino Logging Integration
-
-**Configuration**: Pino instrumentation is enabled by default. To disable it:
-
-```typescript
-MiddlewareApmModule.forRoot({
-  // ... other config
-  enablePinoInstrumentation: false
-})
-```
-
-Or via environment variable:
-```bash
-export MW_PINO_INSTRUMENTATION=false
-```
-
 You can combine multiple decorators for comprehensive instrumentation:
 
 ```typescript
@@ -252,7 +235,6 @@ The MiddlewareApmModule accepts various configuration options to customize the A
       
       // Optional configuration options
       enableFsInstrumentation: false,  // Enable filesystem instrumentation (disabled by default for performance)
-      enablePinoInstrumentation: true, // Enable automatic Pino log collection (enabled by default)
       consoleLog: false,               // Capture console.log outputs
       consoleError: true,              // Capture console.error outputs
       enableSelfInstrumentation: false, // Enable self-instrumentation
@@ -281,7 +263,6 @@ You can also configure the module using environment variables:
 | `MW_SERVICE_NAME` | `serviceName` | Service name | - |
 | `MW_PROJECT_NAME` | `projectName` | Project name | - |
 | `MW_TARGET` | `target` | OTLP endpoint URL | `http://localhost:9319` |
-| `MW_PINO_INSTRUMENTATION` | `enablePinoInstrumentation` | Enable automatic Pino log collection | `true` |
 
 ### Filesystem Instrumentation
 
