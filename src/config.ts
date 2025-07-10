@@ -32,7 +32,6 @@ export interface Config {
   consoleExporter: boolean;
   enableSelfInstrumentation: boolean;
   enableFsInstrumentation: boolean;
-  enablePinoInstrumentation: boolean;
   sdkVersion?: string;
 }
 
@@ -71,7 +70,6 @@ export let configDefault: Config = {
   consoleExporter: false,
   enableSelfInstrumentation: false,
   enableFsInstrumentation: false,
-  enablePinoInstrumentation: true,
 };
 
 export const init = (config: Partial<Config> = {}): Config => {
@@ -123,9 +121,6 @@ export function computeOptions(config: Partial<Config> = {}) {
   config.enableFsInstrumentation =
     parseBoolean(process.env.MW_FS_INSTRUMENTATION) ??
     config.enableFsInstrumentation;
-  config.enablePinoInstrumentation =
-    parseBoolean(process.env.MW_PINO_INSTRUMENTATION) ??
-    config.enablePinoInstrumentation;
   config.sdkVersion = getPackageVersion();
   // Validate and warn
   if (!config.accessToken) {
