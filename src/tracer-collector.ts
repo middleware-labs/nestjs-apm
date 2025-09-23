@@ -17,6 +17,7 @@ import {
   SpanExporter,
 } from "@opentelemetry/sdk-trace-node";
 import { ApmRouteRegistry } from "./nestjs/middleware-apm.route-registry";
+import { addVCSMetadata } from "./helper";
 
 let sdk: NodeSDK | null = null;
 
@@ -24,6 +25,18 @@ export const init = (config: Config) => {
   const apm_pause_traces = config.pauseTraces === true;
 
   if (!apm_pause_traces) {
+    const resourceAttributes: Record<string, any> = {
+      [ATTR_SERVICE_NAME]: config.serviceName,
+      ["mw_agent"]: true,
+      ["project.name"]: config.projectName,
+      ["mw.account_key"]: config.accessToken,
+      ["mw_serverless"]: config.isServerless ? 1 : 0,
+      ["mw.sdk.version"]: config.sdkVersion,
+      ...config.customResourceAttributes,
+    };
+
+    addVCSMetadata(resourceAttributes);
+
     sdk = new NodeSDK({
       textMapPropagator: new CompositePropagator({
         propagators: [
@@ -32,15 +45,7 @@ export const init = (config: Config) => {
         ],
       }),
       resourceDetectors: resourceDetectors(),
-      resource: new Resource({
-        [ATTR_SERVICE_NAME]: config.serviceName,
-        ["mw_agent"]: true,
-        ["project.name"]: config.projectName,
-        ["mw.account_key"]: config.accessToken,
-        ["mw_serverless"]: config.isServerless ? 1 : 0,
-        ["mw.sdk.version"]: config.sdkVersion,
-        ...config.customResourceAttributes,
-      }),
+      resource: new Resource(resourceAttributes),
       traceExporter: getTraceExporter(config),
       instrumentations: [
         getNodeAutoInstrumentations(createInstrumentationConfig(config)),

@@ -11,6 +11,7 @@ import {
 } from "@opentelemetry/api";
 import { performHealthCheck } from "./healthcheck";
 import { shutdown } from "./tracer-collector";
+import ErrorHandler from "./error-handler";
 export const track = (newConfig: Partial<Config> | undefined = {}): void => {
   const config = configInit(newConfig);
   profilerInit(config).then((r) => {});
@@ -88,3 +89,5 @@ export const getTracer = (
 ): Tracer => {
   return otel.trace.getTracer(configDefault.serviceName);
 };
+
+export const errorHandler = ErrorHandler 
